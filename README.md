@@ -56,6 +56,12 @@ Verify that kerberos is working:
 
 (should throw 403 error)
 
+    # kinit client@EXAMPLE.COM
+    (password: luc1d)
+    # curl --negotiate -u : http://solr1:8983/solr/
+    
+(should show the HTML of the admin UI)
+
 Opening the Solr Admin UI from the browser of the host machine:
 
     TODO
