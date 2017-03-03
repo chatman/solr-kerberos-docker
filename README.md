@@ -1,4 +1,10 @@
 # solr-kerberos-docker
+Start Docker
+------------------------
+This works on Docker 1.12. Not sure if more recent versions work as is.
+
+    $ sudo service docker start
+
 Using a KDC docker image
 ------------------------
 Download KDC docker image and keytab files:
@@ -78,7 +84,7 @@ Install kerberos client:
 
 Now add the KDC details:
 
-    # vi /etc/krb5.conf
+    $ sudo vi /etc/krb5.conf
 
 Add the following section (check the KDC's IP address from the first step, assuming 172.17.0.2):
 
