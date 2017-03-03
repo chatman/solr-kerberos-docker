@@ -59,6 +59,7 @@ Back inside the solr1 container (terminal window2), compile and run Solr:
 
     # cd lucene-solr
     # git pull
+    # cd solr
     # ant server
     # bin/solr -c -force
 
