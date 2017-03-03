@@ -25,6 +25,11 @@ To check the ip address of this container, do this inside the container:
 
 Assume the ip address is 172.17.0.2. Assume this terminal window is called window1.
 
+Please note:
+1. Passwords are luc1d for principals: ishan, client
+2. The keytabs file can be used for principals: HTTP/solr1, HTTP/solr2, zookeeper/zk1
+3. Root password (for ssh) is: luc1d
+
 Using a Solr development docker image along with the KDC image
 --------------------------------------------------------------
 
@@ -93,9 +98,4 @@ Setting up Solr dev environment:
 
     TODO
     
-Note
-----
-1. Passwords are luc1d for principals: ishan, client
-2. The keytabs file can be used for principals: HTTP/solr1, HTTP/solr2, zookeeper/zk1
-3. Root password (for ssh) is: luc1d
 
