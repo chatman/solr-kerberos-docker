@@ -68,18 +68,19 @@ Verify that kerberos is working:
     
 (should show the HTML of the admin UI)
 
-Opening the Solr Admin UI from the browser of the host machine:
+Setting up browser on host machine to access Solr Admin UI
+----------------------------------------------------------
+Install kerberos client:
 
-    TODO
+    OS X: Pre-installed? (verify that /etc/krb5.conf file exists)
+    Fedora: sudo yum install krb5-workstation, 
+    Ubuntu: sudo apt-get install krb5-user)
 
-
-Setting up Solr (say, on host machine) to use this KDC
-------------------------------------------------------
-If you are comfortable working inside the Solr development docker container that we created in the previous step, you don't need to go through all this.
+Now add the KDC details:
 
     # vi /etc/krb5.conf
 
-Add the following section:
+Add the following section (check the KDC's IP address from the first step, assuming 172.17.0.2):
 
     [realms]
      EXAMPLE.COM = {
@@ -93,10 +94,24 @@ Also, add the following line in the [libdefaults] section (create this section i
 
 Now, try to do kinit:
 
-    $ kinit erik@EXAMPLE.COM
+    $ kinit client@EXAMPLE.COM
+    password: luc1d
 
-Setting up Solr dev environment:
+Now, we have to add a hostname entry for solr1. First, find out the IP address of the solr1 container (inside window2):
 
-    TODO
+    # ip addr
     
+(assume the IP address is 172.17.0.3)
 
+Now, in the host machine, open a new terminal window (say, window4) and add the host name entry:
+
+    $ sudo vi /etc/hosts
+    Add the following line:
+    solr1  172.17.0.3
+    
+Open Firefox, and goto "about:config". Configure "network.negotiate-auth.delegation-uris" and "network.negotiate-auth.trusted-uris" as follows:
+
+![Firefox Kerberos configuration](http://185.14.187.116/firefox-kerberos.png)
+
+
+Now, access http://solr1:8983/solr and the Solr Admin UI should show up.
