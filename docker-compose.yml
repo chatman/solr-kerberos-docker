@@ -1,0 +1,44 @@
+version: "3.2"
+
+services:
+  zk1:
+    image: jplock/zookeeper:3.4.13
+    ports:
+      - "2181:2181"
+  solr1:
+    build: solr-kerberos
+    ports:
+      - "18983:8983"
+    volumes:
+      - ./wait-for-it.sh:/usr/bin/wait-for-it.sh
+      - ./keytabs:/tmp/keytabs-tmp
+      - ./krb5.conf:/etc/krb5.conf
+      - ./jaas-client.conf:/tmp/tmp-jaas.conf
+    command: >
+      /bin/bash -c 'cp /tmp/tmp-jaas.conf /tmp/jaas-client.conf 
+      && cp /tmp/keytabs-tmp /tmp/keytabs
+      && chmod 777 /tmp/keytabs
+      && export SOLR_AUTH_TYPE="kerberos"
+      && export SOLR_AUTHENTICATION_OPTS="-DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=/tmp/jaas-client.conf -Dsolr.kerberos.cookie.domain=solr1 -Dsolr.kerberos.cookie.portaware=true -Dsolr.kerberos.principal=HTTP/solr1@EXAMPLE.COM -Dsolr.kerberos.keytab=/tmp/keytabs -Dsolr.kerberos.jaas.appname=SolrClient"
+      && sed -i "s/HOSTNAME/solr1/g" /tmp/jaas-client.conf 
+      && /usr/bin/wait-for-it.sh -h zk1 -p 2181 -t 0 
+      && /opt/solr/bin/solr -c -f -Dhost=solr1 -z zk1:2181'
+  solr2:
+    build: solr-kerberos
+    volumes:
+      - ./wait-for-it.sh:/usr/bin/wait-for-it.sh
+      - ./keytabs:/tmp/keytabs-tmp
+      - ./krb5.conf:/etc/krb5.conf
+      - ./jaas-client.conf:/tmp/tmp-jaas.conf
+    command: >
+      /bin/bash -c 'cp /tmp/tmp-jaas.conf /tmp/jaas-client.conf 
+      && cp /tmp/keytabs-tmp /tmp/keytabs
+      && chmod 777 /tmp/keytabs
+      && export SOLR_AUTH_TYPE="kerberos"
+      && export SOLR_AUTHENTICATION_OPTS="-DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=/tmp/jaas-client.conf -Dsolr.kerberos.cookie.domain=solr2 -Dsolr.kerberos.cookie.portaware=true -Dsolr.kerberos.principal=HTTP/solr2@EXAMPLE.COM -Dsolr.kerberos.keytab=/tmp/keytabs -Dsolr.kerberos.jaas.appname=SolrClient"
+      && sed -i "s/HOSTNAME/solr2/g" /tmp/jaas-client.conf 
+      && /usr/bin/wait-for-it.sh -h zk1 -p 2181 -t 0 
+      && /opt/solr/bin/solr -c -f -Dhost=solr2 -z zk1:2181'
+  kdc:
+    image: kdc
+    command: /bin/bash -c "service krb5-kdc start; service krb5-admin-server start; service ssh start; tail -f /dev/null"
