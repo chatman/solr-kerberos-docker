@@ -1,0 +1,28 @@
+{
+ "authentication": {"class": "org.apache.solr.security.KerberosPlugin"},
+ "authorization": {
+   "class": "solr.RuleBasedAuthorizationPlugin",
+   "permissions": [
+     {
+       "name": "read",
+       "role": "*"
+     },
+     {
+       "name": "update",
+       "role": [
+         "indexer",
+         "admin"
+       ]
+     },
+     {
+       "name": "all",
+       "role": "admin"
+     }
+   ],
+   "user-role": {
+     "HTTP/solr1@EXAMPLE.COM": "admin",
+     "HTTP/solr2@EXAMPLE.COM": "admin",
+     "client@EXAMPLE.COM": "indexer"
+   }
+ }
+}
