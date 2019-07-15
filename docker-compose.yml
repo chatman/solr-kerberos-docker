@@ -9,11 +9,15 @@ services:
     build: solr-kerberos
     ports:
       - "18983:8983"
+      - "4000:4000"
     volumes:
       - ./wait-for-it.sh:/usr/bin/wait-for-it.sh
       - ./keytabs:/tmp/keytabs-tmp
       - ./krb5.conf:/etc/krb5.conf
       - ./jaas-client.conf:/tmp/tmp-jaas.conf
+      - ./security.json:/tmp/security.json
+#      - ./solr-core-8.1.2-SNAPSHOT.jar:/opt/solr-8.1.1/dist/solr-core-8.1.1.jar
+#      - ./solr-core-8.1.2-SNAPSHOT.jar:/opt/solr-8.1.1/server/solr-webapp/webapp/WEB-INF/lib/solr-core-8.1.1.jar
     command: >
       /bin/bash -c 'cp /tmp/tmp-jaas.conf /tmp/jaas-client.conf 
       && cp /tmp/keytabs-tmp /tmp/keytabs
@@ -22,14 +26,19 @@ services:
       && export SOLR_AUTHENTICATION_OPTS="-DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=/tmp/jaas-client.conf -Dsolr.kerberos.cookie.domain=solr1 -Dsolr.kerberos.cookie.portaware=true -Dsolr.kerberos.principal=HTTP/solr1@EXAMPLE.COM -Dsolr.kerberos.keytab=/tmp/keytabs -Dsolr.kerberos.jaas.appname=SolrClient"
       && sed -i "s/HOSTNAME/solr1/g" /tmp/jaas-client.conf 
       && /usr/bin/wait-for-it.sh -h zk1 -p 2181 -t 0 
-      && /opt/solr/bin/solr -c -f -Dhost=solr1 -z zk1:2181'
+      && sh server/scripts/cloud-scripts/zkcli.sh -z zk1:2181 -cmd putfile /security.json /tmp/security.json
+      && /opt/solr/bin/solr -c -f -a "-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=4000,suspend=n" -Dhost=solr1 -z zk1:2181'
   solr2:
     build: solr-kerberos
+    ports:
+      - "5000:4000"
     volumes:
       - ./wait-for-it.sh:/usr/bin/wait-for-it.sh
       - ./keytabs:/tmp/keytabs-tmp
       - ./krb5.conf:/etc/krb5.conf
       - ./jaas-client.conf:/tmp/tmp-jaas.conf
+#      - ./solr-core-8.1.2-SNAPSHOT.jar:/opt/solr-8.1.1/dist/solr-core-8.1.1.jar
+#      - ./solr-core-8.1.2-SNAPSHOT.jar:/opt/solr-8.1.1/server/solr-webapp/webapp/WEB-INF/lib/solr-core-8.1.1.jar
     command: >
       /bin/bash -c 'cp /tmp/tmp-jaas.conf /tmp/jaas-client.conf 
       && cp /tmp/keytabs-tmp /tmp/keytabs
@@ -38,7 +47,7 @@ services:
       && export SOLR_AUTHENTICATION_OPTS="-DauthenticationPlugin=org.apache.solr.security.KerberosPlugin -Djava.security.auth.login.config=/tmp/jaas-client.conf -Dsolr.kerberos.cookie.domain=solr2 -Dsolr.kerberos.cookie.portaware=true -Dsolr.kerberos.principal=HTTP/solr2@EXAMPLE.COM -Dsolr.kerberos.keytab=/tmp/keytabs -Dsolr.kerberos.jaas.appname=SolrClient"
       && sed -i "s/HOSTNAME/solr2/g" /tmp/jaas-client.conf 
       && /usr/bin/wait-for-it.sh -h zk1 -p 2181 -t 0 
-      && /opt/solr/bin/solr -c -f -Dhost=solr2 -z zk1:2181'
+      && /opt/solr/bin/solr -c -f -a "-Xdebug -Xrunjdwp:server=y,transport=dt_socket,address=4000,suspend=n" -Dhost=solr2 -z zk1:2181'
   kdc:
     image: kdc
     command: /bin/bash -c "service krb5-kdc start; service krb5-admin-server start; service ssh start; tail -f /dev/null"
